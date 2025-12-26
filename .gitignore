@@ -1,0 +1,21 @@
+# Generated files
+/target/
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+ratatalk.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+*.profraw
