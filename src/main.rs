@@ -183,10 +183,9 @@ async fn run_app(terminal: &mut Term, config: Config) -> Result<()> {
                         && !state.input.trim().is_empty()
                         && !state.streaming
                     {
-                        // Submit message
+                        // Submit message - stay in editing mode for continuous chat
                         let input = state.take_input();
                         submit_message(&mut state, &client, &event_tx, input).await;
-                        state.input_mode = InputMode::Normal;
                     } else if let Some(action) = handle_key_event(key, &state) {
                         process_action(action, &mut state);
                     }
