@@ -20,33 +20,80 @@ A terminal chat client for [Ollama](https://ollama.com), built with Rust and [ra
 - [Rust](https://rustup.rs/) (stable)
 - [Ollama](https://ollama.com/) running locally
 
-### Build from source
+### Install via crates.io (recommended)
+
+The easiest way to get started is to install Ratatalk as a global CLI tool:
+
+```bash
+cargo install ratatalk
+```
+
+This downloads the latest version from [crates.io](https://crates.io/crates/ratatalk) and installs it to your `~/.cargo/bin` directory. After installation, `ratatalk` will be available in your `PATH`, so you can run it from any directory:
+
+```bash
+ratatalk
+```
+
+### Run from source (for development)
+
+If you want to hack on Ratatalk or try the latest features from the repository:
 
 ```bash
 git clone https://github.com/mohammad-albarham/ratatalk.git
 cd ratatalk
-cargo build --release
 ```
 
-The binary will be at `target/release/ratatalk`.
-
-### Install with cargo
+Then run it in development mode:
 
 ```bash
-cargo install --path .
+cargo run
+```
+
+Or with optimizations (recommended for better performance):
+
+```bash
+cargo run --release
+```
+
+### Optional: Handy shell alias
+
+If you frequently run from source, you can add a shell alias to `~/.bashrc` or `~/.zshrc`:
+
+```bash
+alias rt='cargo run --release'
+```
+
+Reload your shell configuration to apply it:
+
+```bash
+source ~/.zshrc  # or source ~/.bashrc
+```
+
+Now you can simply type `rt` to run Ratatalk:
+
+```bash
+rt
 ```
 
 ## Usage
 
-1. Make sure Ollama is running:
-   ```bash
-   ollama serve
-   ```
+### Running Ollama
 
-2. Start ratatalk:
-   ```bash
-   ratatalk
-   ```
+Ratatalk expects a local Ollama server running on `http://127.0.0.1:11434` (the default). Start Ollama in a terminal:
+
+```bash
+ollama serve
+```
+
+### Starting Ratatalk
+
+In another terminal, run Ratatalk:
+
+```bash
+ratatalk
+```
+
+If you installed via crates.io, just use `ratatalk`. If you're running from source with the shell alias, use `rt`.
 
 ## Keybindings
 
