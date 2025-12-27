@@ -34,6 +34,11 @@ This downloads the latest version from [crates.io](https://crates.io/crates/rata
 ratatalk
 ```
 
+### Screenshot from the app:
+
+![Ratatalk in action](assets/ratatalk_screenshot.png)
+
+
 ### Run from source (for development)
 
 If you want to hack on Ratatalk or try the latest features from the repository:
