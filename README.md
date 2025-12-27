@@ -23,7 +23,7 @@ A terminal chat client for [Ollama](https://ollama.com), built with Rust and [ra
 ### Build from source
 
 ```bash
-git clone https://github.com/yourusername/ratatalk.git
+git clone https://github.com/mohammad-albarham/ratatalk.git
 cd ratatalk
 cargo build --release
 ```
