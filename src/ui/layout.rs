@@ -13,6 +13,7 @@ use super::{render_chat, render_input, render_sidebar};
 
 /// Layout areas for the application
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct AppLayout {
     /// Main content area (chat + input)
     pub main: Rect,

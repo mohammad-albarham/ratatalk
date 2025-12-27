@@ -32,6 +32,7 @@ impl OllamaClient {
     }
 
     /// Create a client with default settings (localhost:11434)
+    #[allow(dead_code)]
     pub fn default_local() -> Result<Self, OllamaError> {
         Self::new("http://127.0.0.1:11434", 30)
     }
@@ -137,6 +138,7 @@ impl OllamaClient {
     }
 
     /// Send a chat request and get the full response (non-streaming)
+    #[allow(dead_code)]
     pub async fn chat(
         &self,
         request: ChatRequest,
@@ -181,16 +183,19 @@ impl OllamaClient {
     }
 
     /// Get the base URL
+    #[allow(dead_code)]
     pub fn base_url(&self) -> &str {
         &self.base_url
     }
 }
 
 /// Boxed stream type for easier handling
+#[allow(dead_code)]
 pub type ChatStream = Pin<Box<dyn Stream<Item = Result<ChatResponseChunk, OllamaError>> + Send>>;
 
 impl OllamaClient {
     /// Send a chat request and return a boxed stream (easier to store/pass around)
+    #[allow(dead_code)]
     pub async fn chat_stream_boxed(
         &self,
         request: ChatRequest,

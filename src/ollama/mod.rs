@@ -5,5 +5,5 @@
 mod client;
 mod types;
 
-pub use client::{ChatStream, OllamaClient};
+pub use client::OllamaClient;
 pub use types::*;

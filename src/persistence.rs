@@ -63,6 +63,7 @@ pub fn save_sessions(sessions: &[ChatSession]) -> Result<(), PersistenceError> {
 }
 
 /// Save a single session (merge with existing)
+#[allow(dead_code)]
 pub fn save_session(session: &ChatSession) -> Result<(), PersistenceError> {
     let mut sessions = load_sessions()?;
     
@@ -77,6 +78,7 @@ pub fn save_session(session: &ChatSession) -> Result<(), PersistenceError> {
 }
 
 /// Delete a session by ID
+#[allow(dead_code)]
 pub fn delete_session(session_id: &uuid::Uuid) -> Result<(), PersistenceError> {
     let mut sessions = load_sessions()?;
     sessions.retain(|s| &s.id != session_id);
@@ -84,6 +86,7 @@ pub fn delete_session(session_id: &uuid::Uuid) -> Result<(), PersistenceError> {
 }
 
 /// Export a session to Markdown
+#[allow(dead_code)]
 pub fn export_session_to_markdown(session: &ChatSession) -> String {
     use crate::ollama::Role;
     
@@ -122,6 +125,7 @@ pub fn export_session_to_markdown(session: &ChatSession) -> String {
 }
 
 /// Export a session to a Markdown file
+#[allow(dead_code)]
 pub fn export_session_to_file(session: &ChatSession, path: &PathBuf) -> Result<(), PersistenceError> {
     let md = export_session_to_markdown(session);
     std::fs::write(path, md).map_err(PersistenceError::Write)
@@ -173,7 +177,6 @@ CREATE TABLE IF NOT EXISTS models (
 mod tests {
     use super::*;
     use crate::app::Message;
-    use crate::ollama::Role;
 
     #[test]
     fn test_export_markdown() {

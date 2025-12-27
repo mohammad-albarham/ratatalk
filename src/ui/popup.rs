@@ -31,7 +31,7 @@ pub fn render_model_popup(frame: &mut Frame, state: &AppState) {
         .borders(Borders::ALL)
         .border_style(styles::border_focused());
 
-    let inner_area = block.inner(area);
+    let _inner_area = block.inner(area);
 
     if state.models.is_empty() {
         let msg = if state.loading {
@@ -149,7 +149,7 @@ pub fn render_delete_confirm_popup(frame: &mut Frame, state: &AppState) {
         .borders(Borders::ALL)
         .border_style(Style::default().fg(colors::ERROR));
 
-    let inner_area = block.inner(area);
+    let _inner_area = block.inner(area);
 
     // Get session details
     let (session_name, message_count) = state

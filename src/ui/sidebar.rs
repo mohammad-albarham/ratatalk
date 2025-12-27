@@ -11,7 +11,7 @@ use ratatui::{
 
 use crate::app::AppState;
 
-use super::{colors, styles};
+use super::styles;
 
 /// Render the sidebar
 pub fn render_sidebar(frame: &mut Frame, state: &AppState, area: Rect) {

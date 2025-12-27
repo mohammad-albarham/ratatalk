@@ -10,7 +10,7 @@ mod sidebar;
 
 pub use chat::render_chat;
 pub use input::render_input;
-pub use layout::{render_layout, AppLayout};
+pub use layout::render_layout;
 pub use popup::{render_help_popup, render_model_popup, render_delete_confirm_popup};
 pub use sidebar::render_sidebar;
 
@@ -20,7 +20,9 @@ use ratatui::style::{Color, Modifier, Style};
 pub mod colors {
     use super::*;
 
+    #[allow(dead_code)]
     pub const BG: Color = Color::Reset;
+    #[allow(dead_code)]
     pub const FG: Color = Color::Reset;
     
     pub const BORDER: Color = Color::DarkGray;
@@ -34,6 +36,7 @@ pub mod colors {
     pub const ERROR: Color = Color::Red;
     pub const WARNING: Color = Color::Yellow;
     pub const SUCCESS: Color = Color::Green;
+    #[allow(dead_code)]
     pub const INFO: Color = Color::Blue;
     
     pub const SELECTED: Color = Color::Yellow;
@@ -59,14 +62,17 @@ pub mod styles {
         Style::default().fg(colors::BORDER_ACTIVE)
     }
 
+    #[allow(dead_code)]
     pub fn user_message() -> Style {
         Style::default().fg(colors::USER_MSG)
     }
 
+    #[allow(dead_code)]
     pub fn assistant_message() -> Style {
         Style::default().fg(colors::ASSISTANT_MSG)
     }
 
+    #[allow(dead_code)]
     pub fn system_message() -> Style {
         Style::default().fg(colors::SYSTEM_MSG)
     }
@@ -97,6 +103,7 @@ pub mod styles {
         Style::default().add_modifier(Modifier::DIM)
     }
 
+    #[allow(dead_code)]
     pub fn bold() -> Style {
         Style::default().add_modifier(Modifier::BOLD)
     }

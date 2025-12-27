@@ -40,10 +40,12 @@ impl Message {
         Self::new(Role::User, content)
     }
 
+    #[allow(dead_code)]
     pub fn assistant(content: impl Into<String>) -> Self {
         Self::new(Role::Assistant, content)
     }
 
+    #[allow(dead_code)]
     pub fn system(content: impl Into<String>) -> Self {
         Self::new(Role::System, content)
     }
@@ -177,6 +179,7 @@ impl ChatSession {
     }
 
     /// Get a preview of the last message for sidebar display
+    #[allow(dead_code)]
     pub fn preview(&self) -> &str {
         self.messages
             .iter()
@@ -198,6 +201,7 @@ pub enum InputMode {
     Normal,
     Editing,
     ModelSelect,
+    #[allow(dead_code)]
     SessionSelect,
     Help,
     DeleteConfirm,
@@ -209,6 +213,7 @@ pub enum FocusArea {
     #[default]
     Chat,
     Input,
+    #[allow(dead_code)]
     Sidebar,
 }
 
@@ -217,6 +222,7 @@ pub enum FocusArea {
 pub struct ResponseStats {
     pub tokens: u32,
     pub tokens_per_second: f64,
+    #[allow(dead_code)]
     pub total_duration_ms: u64,
 }
 
@@ -248,12 +254,14 @@ pub struct AppState {
     pub input_mode: InputMode,
     
     /// Current focus area
+    #[allow(dead_code)]
     pub focus: FocusArea,
     
     /// Scroll offset for chat history
     pub chat_scroll: usize,
     
     /// Scroll offset for sidebar
+    #[allow(dead_code)]
     pub sidebar_scroll: usize,
     
     /// Status message (shown in status bar)
@@ -494,12 +502,15 @@ impl AppState {
 #[derive(Debug, Clone)]
 pub enum AppEvent {
     /// Terminal input event
+    #[allow(dead_code)]
     Input(crossterm::event::KeyEvent),
     
     /// Terminal resize event
+    #[allow(dead_code)]
     Resize(u16, u16),
     
     /// Tick event for animations/updates
+    #[allow(dead_code)]
     Tick,
     
     /// Models loaded from Ollama
@@ -521,6 +532,7 @@ pub enum AppEvent {
     ServerStatus(bool),
     
     /// Request to quit
+    #[allow(dead_code)]
     Quit,
 }
 

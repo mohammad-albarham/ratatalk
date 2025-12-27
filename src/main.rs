@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
 use tracing::{error, info, warn};
 
-use app::{AppAction, AppEvent, AppState, ChatSession, InputMode, ResponseStats};
+use app::{AppEvent, AppState, InputMode, ResponseStats};
 use config::Config;
 use events::{handle_key_event, process_action, EventHandler};
 use ollama::{ChatRequest, OllamaClient};

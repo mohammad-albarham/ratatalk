@@ -89,6 +89,7 @@ impl ChatMessage {
         }
     }
 
+    #[allow(dead_code)]
     pub fn user(content: impl Into<String>) -> Self {
         Self {
             role: Role::User,
@@ -97,6 +98,7 @@ impl ChatMessage {
         }
     }
 
+    #[allow(dead_code)]
     pub fn assistant(content: impl Into<String>) -> Self {
         Self {
             role: Role::Assistant,
@@ -167,6 +169,7 @@ impl ChatRequest {
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_stream(mut self, stream: bool) -> Self {
         self.stream = stream;
         self
@@ -207,6 +210,7 @@ impl ChatResponseChunk {
     }
 
     /// Check if this chunk contains an error
+    #[allow(dead_code)]
     pub fn is_error(&self) -> bool {
         self.error.is_some()
     }
@@ -228,6 +232,7 @@ impl ChatResponseChunk {
 
 /// Response from GET / (health check)
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct HealthResponse {
     #[serde(default)]
     pub status: String,
@@ -239,6 +244,7 @@ pub struct HealthResponse {
 
 /// Request body for /api/generate
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct GenerateRequest {
     pub model: String,
     pub prompt: String,
@@ -254,6 +260,7 @@ pub struct GenerateRequest {
 
 /// Response chunk from /api/generate
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct GenerateResponseChunk {
     pub model: String,
     pub created_at: Option<DateTime<Utc>>,

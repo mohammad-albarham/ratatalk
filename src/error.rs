@@ -6,6 +6,7 @@ use thiserror::Error;
 
 /// Application-level errors
 #[derive(Error, Debug)]
+#[allow(dead_code)]
 pub enum AppError {
     #[error("Configuration error: {0}")]
     Config(#[from] ConfigError),
@@ -54,9 +55,11 @@ pub enum OllamaError {
     #[error("Ollama server not reachable at {url}")]
     ConnectionFailed { url: String },
 
+    #[allow(dead_code)]
     #[error("Model not found: {model}")]
     ModelNotFound { model: String },
 
+    #[allow(dead_code)]
     #[error("Stream ended unexpectedly")]
     StreamEnded,
 
@@ -85,9 +88,11 @@ pub enum PersistenceError {
     #[error("Failed to create data directory: {0}")]
     CreateDir(#[source] std::io::Error),
 
+    #[allow(dead_code)]
     #[error("Session not found: {id}")]
     SessionNotFound { id: String },
 }
 
 /// Result type alias using anyhow for convenient error handling
+#[allow(dead_code)]
 pub type Result<T> = anyhow::Result<T>;

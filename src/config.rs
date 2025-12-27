@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// Application configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
     /// Ollama server settings
     #[serde(default)]
@@ -25,17 +25,6 @@ pub struct Config {
     /// Keybinding overrides (future use)
     #[serde(default)]
     pub keybindings: KeybindingsConfig,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            server: ServerConfig::default(),
-            model: ModelConfig::default(),
-            ui: UiConfig::default(),
-            keybindings: KeybindingsConfig::default(),
-        }
-    }
 }
 
 /// Ollama server configuration
