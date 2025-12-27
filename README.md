@@ -1,8 +1,8 @@
-# Ratatalk 🐀💬
+# Ratatalk 🦀💬
 
 A terminal chat client for [Ollama](https://ollama.com), built with Rust and [ratatui](https://ratatui.rs).
 
-![Ratatalk Screenshot](docs/screenshot.png)
+![Ratatalk Screenshot](assets/logo.png)
 
 ## Features
 
