@@ -133,6 +133,70 @@ pub fn render_help_popup(frame: &mut Frame, state: &AppState) {
     frame.render_widget(paragraph, area);
 }
 
+/// Render the delete confirmation popup
+pub fn render_delete_confirm_popup(frame: &mut Frame, state: &AppState) {
+    if state.input_mode != InputMode::DeleteConfirm {
+        return;
+    }
+
+    let area = centered_rect(50, 40, frame.area());
+    
+    // Clear the background
+    frame.render_widget(Clear, area);
+
+    let block = Block::default()
+        .title(" Delete Session? ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(colors::ERROR));
+
+    let inner_area = block.inner(area);
+
+    // Get session details
+    let (session_name, message_count) = state
+        .active_session()
+        .map(|s| (s.name.clone(), s.message_count()))
+        .unwrap_or_else(|| ("Unknown".to_string(), 0));
+
+    // Truncate long session names
+    let display_name = if session_name.len() > 35 {
+        format!("{}...", &session_name[..32])
+    } else {
+        session_name.clone()
+    };
+
+    // Build confirmation message
+    let lines = vec![
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("Session: "),
+            Span::styled(display_name, Style::default().add_modifier(Modifier::BOLD)),
+        ]),
+        Line::from(vec![
+            Span::raw("Messages: "),
+            Span::styled(message_count.to_string(), Style::default().add_modifier(Modifier::BOLD)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            "⚠ This action cannot be undone.",
+            Style::default().fg(colors::WARNING),
+        )),
+        Line::from(""),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("[Y]", styles::highlight()),
+            Span::raw(" Yes, delete    "),
+            Span::styled("[N]", styles::highlight()),
+            Span::raw(" No, cancel"),
+        ]),
+    ];
+
+    let paragraph = Paragraph::new(lines)
+        .block(block)
+        .alignment(Alignment::Center);
+    
+    frame.render_widget(paragraph, area);
+}
+
 /// Create a centered rect with percentage of parent
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()

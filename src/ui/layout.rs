@@ -160,6 +160,7 @@ fn render_status_bar(frame: &mut Frame, state: &AppState, area: Rect) {
         crate::app::InputMode::ModelSelect => "MODEL",
         crate::app::InputMode::SessionSelect => "SESSION",
         crate::app::InputMode::Help => "HELP",
+        crate::app::InputMode::DeleteConfirm => "DELETE?",
     };
     
     // Calculate padding to right-align mode

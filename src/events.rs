@@ -4,8 +4,10 @@
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
+use tracing::{info, warn};
 
 use crate::app::{AppAction, AppState, InputMode};
+use crate::persistence;
 
 /// Event handler configuration
 pub struct EventHandler {
@@ -45,6 +47,7 @@ pub fn handle_key_event(key: KeyEvent, state: &AppState) -> Option<AppAction> {
         InputMode::ModelSelect => handle_model_select_mode(key),
         InputMode::SessionSelect => handle_session_select_mode(key),
         InputMode::Help => handle_help_mode(key),
+        InputMode::DeleteConfirm => handle_delete_confirm_mode(key),
     }
 }
 
@@ -63,7 +66,7 @@ fn handle_normal_mode(key: KeyEvent, _state: &AppState) -> Option<AppAction> {
         (KeyCode::Tab, KeyModifiers::NONE) => Some(AppAction::NextSession),
         (KeyCode::BackTab, _) => Some(AppAction::PrevSession),
         (KeyCode::Char('n'), KeyModifiers::CONTROL) => Some(AppAction::NewSession),
-        (KeyCode::Char('w'), KeyModifiers::CONTROL) => Some(AppAction::DeleteSession),
+        (KeyCode::Char('w'), KeyModifiers::CONTROL) => Some(AppAction::RequestDeleteSession),
         
         // Model selection
         (KeyCode::Char('m'), KeyModifiers::NONE) => Some(AppAction::OpenModelSelect),
@@ -177,6 +180,19 @@ fn handle_help_mode(key: KeyEvent) -> Option<AppAction> {
     }
 }
 
+/// Handle keys in delete confirmation mode
+fn handle_delete_confirm_mode(key: KeyEvent) -> Option<AppAction> {
+    match key.code {
+        KeyCode::Char('y') | KeyCode::Char('Y') | KeyCode::Enter => {
+            Some(AppAction::ConfirmDeleteSession)
+        }
+        KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+            Some(AppAction::CancelDeleteSession)
+        }
+        _ => None,
+    }
+}
+
 /// Process an action and update state
 pub fn process_action(action: AppAction, state: &mut AppState) {
     // Clear transient error messages on most actions
@@ -191,6 +207,34 @@ pub fn process_action(action: AppAction, state: &mut AppState) {
         AppAction::PrevSession => state.prev_session(),
         AppAction::NewSession => state.new_session(),
         AppAction::DeleteSession => state.delete_current_session(),
+        AppAction::RequestDeleteSession => {
+            // Check if we can delete (not the last session, not streaming)
+            if state.sessions.len() <= 1 {
+                state.set_error("Cannot delete the last remaining session");
+            } else if state.streaming {
+                state.set_error("Cannot delete session while receiving response");
+            } else {
+                state.input_mode = InputMode::DeleteConfirm;
+            }
+        }
+        AppAction::ConfirmDeleteSession => {
+            let session_name = state.active_session()
+                .map(|s| s.name.clone())
+                .unwrap_or_default();
+            
+            state.delete_current_session();
+            info!("Session deleted: {}", session_name);
+            state.set_status(format!("Session deleted: {}", session_name));
+            state.input_mode = InputMode::Normal;
+            
+            // Save sessions after deletion
+            if let Err(e) = persistence::save_sessions(&state.sessions) {
+                warn!("Failed to save sessions after deletion: {}", e);
+            }
+        }
+        AppAction::CancelDeleteSession => {
+            state.input_mode = InputMode::Normal;
+        }
 
         // Model selection
         AppAction::OpenModelSelect => {

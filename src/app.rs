@@ -200,6 +200,7 @@ pub enum InputMode {
     ModelSelect,
     SessionSelect,
     Help,
+    DeleteConfirm,
 }
 
 /// Focus area in the UI
@@ -531,6 +532,9 @@ pub enum AppAction {
     PrevSession,
     NewSession,
     DeleteSession,
+    RequestDeleteSession,
+    ConfirmDeleteSession,
+    CancelDeleteSession,
     
     // Model selection
     OpenModelSelect,

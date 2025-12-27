@@ -26,7 +26,7 @@ use app::{AppAction, AppEvent, AppState, ChatSession, InputMode, ResponseStats};
 use config::Config;
 use events::{handle_key_event, process_action, EventHandler};
 use ollama::{ChatRequest, OllamaClient};
-use ui::{render_help_popup, render_layout, render_model_popup};
+use ui::{render_help_popup, render_layout, render_model_popup, render_delete_confirm_popup};
 
 /// Terminal type alias
 type Term = Terminal<CrosstermBackend<Stdout>>;
@@ -171,6 +171,7 @@ async fn run_app(terminal: &mut Term, config: Config) -> Result<()> {
             render_layout(frame, &state);
             render_model_popup(frame, &state);
             render_help_popup(frame, &state);
+            render_delete_confirm_popup(frame, &state);
         })?;
         
         // Handle terminal events (non-blocking with timeout)
