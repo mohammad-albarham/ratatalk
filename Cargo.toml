@@ -2,10 +2,10 @@
 name = "ratatalk"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <you@example.com>"]
+authors = ["Mohammad albarham"]
 description = "A terminal chat client for Ollama, built with Rust and ratatui"
 license = "MIT"
-repository = "https://github.com/yourusername/ratatalk"
+repository = "https://github.com/mohammad-albarham/ratatalk"
 keywords = ["ollama", "llm", "tui", "chat", "terminal"]
 categories = ["command-line-utilities"]
 
