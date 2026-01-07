@@ -10,6 +10,7 @@ A terminal chat client for [Ollama](https://ollama.com), built with Rust and [ra
 - 💬 **Multi-Session**: Manage multiple named chat conversations
 - 💾 **Persistent**: Sessions auto-save across restarts
 - ⌨️ **Keyboard-Driven**: Vim-inspired keybindings
+- 🖱️ **Mouse Support**: Click to switch sessions, scroll chat, and navigate
 - 🎨 **Beautiful TUI**: Clean, modern terminal interface
 - ⚙️ **Configurable**: TOML-based configuration
 
@@ -219,6 +220,32 @@ src/
 - [ ] Search within chat
 - [ ] RAG support with local files
 - [ ] Image/multimodal support
+
+## Changelog
+
+### v0.1.2 (2026-01-07)
+
+**🖱️ Mouse Navigation Support** — Fixes [#1](https://github.com/mohammad-albarham/ratatalk/issues/1)
+
+- **Click to switch sessions**: Click any session in the sidebar to switch to it
+- **Click to focus input**: Click the input area to enter editing mode
+- **Click model box**: Click the model info box to open the model selector
+- **Scroll with mouse wheel**: Scroll through chat history using the mouse wheel
+- **Click to dismiss popups**: Click anywhere to close help, model selector, or delete confirmation popups
+- Configuration option `mouse_support` to enable/disable (enabled by default)
+
+**Commit**: [`99ba6db`](https://github.com/mohammad-albarham/ratatalk/commit/99ba6db)
+
+---
+
+### v0.1.1 (2026-01-05)
+
+- Initial release on crates.io
+- Chat with local Ollama models
+- Multiple persistent sessions
+- Vim-style keybindings
+- Streaming responses
+- TOML configuration
 
 ## Contributing
 
