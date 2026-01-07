@@ -544,6 +544,7 @@ pub enum AppAction {
     PrevSession,
     NewSession,
     DeleteSession,
+    SelectSession(usize),  // Direct session selection (for mouse clicks)
     RequestDeleteSession,
     ConfirmDeleteSession,
     CancelDeleteSession,
@@ -554,6 +555,7 @@ pub enum AppAction {
     NextModel,
     PrevModel,
     ConfirmModel,
+    SelectModel(usize),  // Direct model selection (for mouse clicks)
     
     // Input
     EnterEditMode,

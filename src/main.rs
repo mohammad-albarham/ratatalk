@@ -24,9 +24,9 @@ use tracing::{error, info, warn};
 
 use app::{AppEvent, AppState, InputMode, ResponseStats};
 use config::Config;
-use events::{handle_key_event, process_action, EventHandler};
+use events::{handle_key_event, handle_mouse_event, process_action, EventHandler};
 use ollama::{ChatRequest, OllamaClient};
-use ui::{render_help_popup, render_layout, render_model_popup, render_delete_confirm_popup};
+use ui::{render_help_popup, render_layout, render_model_popup, render_delete_confirm_popup, AppLayout};
 
 /// Terminal type alias
 type Term = Terminal<CrosstermBackend<Stdout>>;
@@ -174,6 +174,11 @@ async fn run_app(terminal: &mut Term, config: Config) -> Result<()> {
             render_delete_confirm_popup(frame, &state);
         })?;
         
+        // Compute current layout for mouse hit-testing
+        let size = terminal.size()?;
+        let area = ratatui::layout::Rect::new(0, 0, size.width, size.height);
+        let current_layout = AppLayout::new(area, state.config.ui.sidebar_width);
+        
         // Handle terminal events (non-blocking with timeout)
         if let Some(event) = event_handler.poll()? {
             match event {
@@ -188,6 +193,12 @@ async fn run_app(terminal: &mut Term, config: Config) -> Result<()> {
                         let input = state.take_input();
                         submit_message(&mut state, &client, &event_tx, input).await;
                     } else if let Some(action) = handle_key_event(key, &state) {
+                        process_action(action, &mut state);
+                    }
+                }
+                Event::Mouse(mouse) if state.config.ui.mouse_support => {
+                    // Handle mouse events using the same action system
+                    if let Some(action) = handle_mouse_event(mouse, &state, &current_layout) {
                         process_action(action, &mut state);
                     }
                 }

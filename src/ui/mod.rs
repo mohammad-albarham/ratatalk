@@ -10,7 +10,7 @@ mod sidebar;
 
 pub use chat::render_chat;
 pub use input::render_input;
-pub use layout::render_layout;
+pub use layout::{render_layout, AppLayout};
 pub use popup::{render_help_popup, render_model_popup, render_delete_confirm_popup};
 pub use sidebar::render_sidebar;
 

@@ -2,12 +2,14 @@
 //!
 //! Handles terminal input events and maps them to application actions.
 
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind, MouseButton};
+use ratatui::layout::Rect;
 use std::time::Duration;
 use tracing::{info, warn};
 
 use crate::app::{AppAction, AppState, InputMode};
 use crate::persistence;
+use crate::ui::AppLayout;
 
 /// Event handler configuration
 pub struct EventHandler {
@@ -207,6 +209,12 @@ pub fn process_action(action: AppAction, state: &mut AppState) {
         AppAction::PrevSession => state.prev_session(),
         AppAction::NewSession => state.new_session(),
         AppAction::DeleteSession => state.delete_current_session(),
+        AppAction::SelectSession(idx) => {
+            if idx < state.sessions.len() {
+                state.active_session_idx = idx;
+                state.chat_scroll = 0;
+            }
+        }
         AppAction::RequestDeleteSession => {
             // Check if we can delete (not the last session, not streaming)
             if state.sessions.len() <= 1 {
@@ -258,6 +266,11 @@ pub fn process_action(action: AppAction, state: &mut AppState) {
                 state.set_status(format!("Switched to model: {}", model_name));
             }
             state.input_mode = InputMode::Normal;
+        }
+        AppAction::SelectModel(idx) => {
+            if idx < state.models.len() {
+                state.selected_model_idx = idx;
+            }
         }
 
         // Input
@@ -342,6 +355,141 @@ pub fn get_help_text() -> Vec<(&'static str, &'static str)> {
         ("  Ctrl+u", "Clear input"),
         ("  Ctrl+w", "Delete word"),
     ]
+}
+
+// ============================================================================
+// Mouse Event Handling
+// ============================================================================
+
+/// Map a mouse event to an application action based on current mode and UI layout
+pub fn handle_mouse_event(
+    mouse: MouseEvent,
+    state: &AppState,
+    layout: &AppLayout,
+) -> Option<AppAction> {
+    let x = mouse.column;
+    let y = mouse.row;
+
+    match mouse.kind {
+        // Left click
+        MouseEventKind::Down(MouseButton::Left) => {
+            handle_mouse_click(x, y, state, layout)
+        }
+        
+        // Scroll wheel (anywhere in the window scrolls chat)
+        MouseEventKind::ScrollUp => {
+            // Only scroll in normal or editing mode, not in popups
+            match state.input_mode {
+                InputMode::Normal | InputMode::Editing => Some(AppAction::ScrollUp(3)),
+                InputMode::ModelSelect => Some(AppAction::PrevModel),
+                _ => None,
+            }
+        }
+        MouseEventKind::ScrollDown => {
+            match state.input_mode {
+                InputMode::Normal | InputMode::Editing => Some(AppAction::ScrollDown(3)),
+                InputMode::ModelSelect => Some(AppAction::NextModel),
+                _ => None,
+            }
+        }
+        
+        _ => None,
+    }
+}
+
+/// Handle a left mouse click based on position
+fn handle_mouse_click(
+    x: u16,
+    y: u16,
+    state: &AppState,
+    layout: &AppLayout,
+) -> Option<AppAction> {
+    // Handle popup modes first (they overlay the main UI)
+    match state.input_mode {
+        InputMode::Help => {
+            // Any click dismisses help
+            return Some(AppAction::ToggleHelp);
+        }
+        InputMode::DeleteConfirm => {
+            // For delete confirmation, any click outside could cancel
+            // We keep it simple: clicking anywhere cancels
+            return Some(AppAction::CancelDeleteSession);
+        }
+        InputMode::ModelSelect => {
+            // Clicking outside the popup closes it
+            // The popup is centered, so we'd need popup bounds
+            // For now, let clicks through or close on edge
+            // TODO: Implement proper popup hit-testing
+            return Some(AppAction::CloseModelSelect);
+        }
+        _ => {}
+    }
+
+    // Check if click is in sidebar (sessions list area at top of sidebar)
+    if contains(layout.sidebar, x, y) {
+        return handle_sidebar_click(x, y, state, layout);
+    }
+    
+    // Check if click is in input area
+    if contains(layout.input, x, y) {
+        // Enter editing mode when clicking input
+        if state.input_mode != InputMode::Editing {
+            return Some(AppAction::EnterEditMode);
+        }
+        return None;
+    }
+    
+    // Check if click is in chat area
+    if contains(layout.chat, x, y) {
+        // Clicking in chat in normal mode does nothing special for now
+        // Future: could scroll to clicked message or select text
+        return None;
+    }
+    
+    None
+}
+
+/// Handle clicks within the sidebar area
+fn handle_sidebar_click(
+    _x: u16,
+    y: u16,
+    state: &AppState,
+    layout: &AppLayout,
+) -> Option<AppAction> {
+    // The sidebar is split into two parts:
+    // - Sessions list (top, takes most space)
+    // - Model info box (bottom, 5 lines)
+    
+    // Model info box is at the bottom 5 lines of sidebar
+    let model_box_height = 5u16;
+    let model_box_y = layout.sidebar.y + layout.sidebar.height.saturating_sub(model_box_height);
+    
+    // Check if click is in model info box
+    if y >= model_box_y {
+        // Clicking model box opens model selector
+        return Some(AppAction::OpenModelSelect);
+    }
+    
+    // Otherwise, click is in sessions list
+    // Sessions list has a border, so actual items start at y+1
+    let list_area_y = layout.sidebar.y + 1; // After top border
+    let list_area_height = layout.sidebar.height.saturating_sub(model_box_height + 2); // Minus borders and model box
+    
+    if y >= list_area_y && y < list_area_y + list_area_height {
+        let clicked_idx = (y - list_area_y) as usize;
+        
+        if clicked_idx < state.sessions.len() {
+            return Some(AppAction::SelectSession(clicked_idx));
+        }
+    }
+    
+    None
+}
+
+/// Helper: check if (x, y) is within a Rect
+fn contains(rect: Rect, x: u16, y: u16) -> bool {
+    x >= rect.x && x < rect.x + rect.width &&
+    y >= rect.y && y < rect.y + rect.height
 }
 
 #[cfg(test)]
