@@ -90,14 +90,14 @@ fn render_sessions_list(frame: &mut Frame, state: &AppState, area: Rect) {
 
     // Show hint at bottom if there's space
     if inner_area.height > state.sessions.len() as u16 + 2 {
-        let hint_y = area.y + area.height - 2;
+        let hint_y = area.y + area.height.saturating_sub(2);
         let hint = Paragraph::new(Span::styled("Ctrl+n: new", styles::dim()));
         frame.render_widget(
             hint,
             Rect {
                 x: area.x + 1,
                 y: hint_y,
-                width: area.width - 2,
+                width: area.width.saturating_sub(2),
                 height: 1,
             },
         );

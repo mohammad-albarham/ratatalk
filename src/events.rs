@@ -282,7 +282,7 @@ pub fn process_action(action: AppAction, state: &mut AppState) {
         }
         AppAction::SubmitMessage => {
             // Don't submit empty messages or while streaming
-            if !state.input.trim().is_empty() && !state.streaming {
+            if !state.clone_input().trim().is_empty() && !state.streaming {
                 // Message submission is handled by the main loop
                 // This action just signals intent
             }

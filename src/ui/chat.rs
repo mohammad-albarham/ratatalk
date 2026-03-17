@@ -9,6 +9,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
+use unicode_width::UnicodeWidthChar;
 
 use crate::app::{AppState, InputMode, Message};
 use crate::ollama::Role;
@@ -182,26 +183,40 @@ fn wrap_text(text: &str, max_width: usize) -> Vec<String> {
         }
 
         let mut current_line = String::new();
-        
-        for word in paragraph.split_whitespace() {
-            if current_line.is_empty() {
-                if word.len() > max_width {
-                    // Word is too long, split it
-                    for chunk in word.chars().collect::<Vec<_>>().chunks(max_width) {
-                        lines.push(chunk.iter().collect());
-                    }
+        let mut current_length = 0;
+        let mut last_alphanumeric = false;
+        for current_char in paragraph.chars() {
+            let char_width = current_char.width_cjk().unwrap_or(1);
+            let current_alphanumeric = current_char.is_ascii_alphanumeric();
+            let hyphen = last_alphanumeric && current_alphanumeric;
+            if current_length + char_width >= max_width - if hyphen { 2 } else { 1 } {
+                if !hyphen {
+                    lines.push(current_line);
+                    current_line = String::new();
                 } else {
-                    current_line = word.to_string();
+                    let mut index = 0;
+                    for v in current_line.chars().rev() {
+                        if !v.is_ascii_alphanumeric() {
+                            index = current_line.len() - index;
+                            if index == 0 {
+                                current_line.push('-');
+                                lines.push(current_line);
+                                current_line = String::new();
+                            } else {
+                                lines.push(String::from(&current_line[..index]));
+                                current_line = String::from(&current_line[index..]);
+                            }
+                            break;
+                        }
+                        index += 1;
+                    }
                 }
-            } else if current_line.len() + 1 + word.len() <= max_width {
-                current_line.push(' ');
-                current_line.push_str(word);
-            } else {
-                lines.push(current_line);
-                current_line = word.to_string();
+                current_length = 0;
             }
-        }
-        
+            current_line.push(current_char);
+            current_length += char_width;
+            last_alphanumeric = current_alphanumeric;
+        }        
         if !current_line.is_empty() {
             lines.push(current_line);
         }

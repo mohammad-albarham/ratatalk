@@ -2,8 +2,11 @@
 //!
 //! Central state management and event-driven architecture for ratatalk.
 
+use std::cell::Cell;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use unicode_width::UnicodeWidthChar;
 use uuid::Uuid;
 
 use crate::config::Config;
@@ -226,6 +229,99 @@ pub struct ResponseStats {
     pub total_duration_ms: u64,
 }
 
+#[derive(Debug)]
+struct Cursor {
+    base: Cell<usize>,
+    position: Cell<usize>,
+}
+impl Cursor {
+    #[inline]
+    fn update_base(&self, delta: isize) {
+        self.base.set((self.get_base() as isize + delta) as usize);
+    }
+    #[inline]
+    fn update_position(&self, delta: isize) {
+        self.position
+            .set((self.get_position() as isize + delta) as usize);
+    }
+    /// new cursor instance
+    pub fn new() -> Self {
+        Self {
+            base: Cell::new(0),
+            position: Cell::new(0),
+        }
+    }
+
+    /// get base
+    #[inline]
+    pub fn get_base(&self) -> usize {
+        self.base.get()
+    }
+
+    /// get position
+    #[inline]
+    pub fn get_position(&self) -> usize {
+        self.position.get()
+    }
+
+    /// get absolute position
+    #[inline]
+    pub fn get_absolute(&self) -> usize {
+        self.get_base() + self.get_position()
+    }
+
+    /// move cursor to begin
+    pub fn move_home(&self) {
+        self.base.set(0);
+        self.position.set(0);
+    }
+
+    /// move cursor to end
+    pub fn move_end(&self, total: usize) -> bool {
+        let base = self.get_base();
+        let r = total >= base;
+        if r {
+            self.position.set(total - base);
+        }
+        r
+    }
+
+    /// move one char left
+    pub fn move_left(&self) -> bool {
+        let r = self.get_absolute() > 0;
+        if r {
+            if self.get_position() > 0 {
+                self.update_position(-1);
+            } else if self.get_base() > 0 {
+                self.update_base(-1);
+            }
+        }
+        r
+    }
+
+    /// move one char right
+    pub fn move_right(&self, total: usize) -> bool {
+        let r = total > self.get_absolute();
+        if r {
+            self.update_position(1);
+        }
+        r
+    }
+
+    /// move the base depend on the total width
+    pub fn move_base(&self, mut delta: isize) {
+        let base = self.get_base();
+        let position = self.get_position();
+        delta = if delta >= 0 {
+            delta.min(position as isize)
+        } else {
+            delta.max(-(base as isize))
+        };
+        self.update_base(delta);
+        self.update_position(-delta);
+    }
+}
+
 /// Central application state
 #[derive(Debug)]
 pub struct AppState {
@@ -245,10 +341,10 @@ pub struct AppState {
     pub selected_model_idx: usize,
     
     /// User input buffer
-    pub input: String,
+    input: Vec<char>,
     
     /// Cursor position in input
-    pub cursor_position: usize,
+    cursor: Cursor,
     
     /// Current input mode
     pub input_mode: InputMode,
@@ -296,8 +392,8 @@ impl AppState {
             sessions: vec![ChatSession::with_default_name(&default_model)],
             active_session_idx: 0,
             selected_model_idx: 0,
-            input: String::new(),
-            cursor_position: 0,
+            input: Vec::new(),
+            cursor: Cursor::new(),
             input_mode: InputMode::Normal,
             focus: FocusArea::Input,
             chat_scroll: 0,
@@ -400,62 +496,116 @@ impl AppState {
         }
     }
 
+    /// get the cursor position
+    pub fn get_cursor(&self, max_width: usize) -> usize {
+        let shown = &self.input[self.cursor.get_base()..][..self.cursor.get_position()];
+        let width = shown.iter().map(|c| c.width_cjk().unwrap_or(1)).sum();
+        max_width.min(width)
+    }
+
+    /// split the input at cursor
+    pub fn split_at_cursor(&self, mut max_width: usize) -> (String, String) {
+        // compute all chars with in tui
+        let chars_width: Vec<_> = self
+            .input
+            .iter()
+            .map(|c| c.width_cjk().unwrap_or(1))
+            .collect();
+        let mut before = String::new();
+        let mut after = String::new();
+        // rebase if chars can fit the input box
+        if chars_width.iter().sum::<usize>() <= max_width {
+            let delta = self.cursor.get_base() as isize;
+            self.cursor.move_base(-delta);
+            // split at cursor position
+            let position = self.cursor.get_absolute();
+            before.extend(&self.input[..position]);
+            after.extend(&self.input[position..]);
+        } else {
+            // find the almost left of position of char in input box, rebase if possible
+            let chars_width = &chars_width[self.cursor.get_base()..][..self.cursor.get_position()];
+            let mut it = chars_width.iter().enumerate().rev();
+            let position = loop {
+                match it.next() {
+                    Some((i, char_width)) => {
+                        if *char_width < max_width - 1 {
+                            max_width -= char_width;
+                        } else {
+                            self.cursor.move_base(i as isize);
+                            break i;
+                        }
+                    }
+                    None => break 0,
+                }
+            };
+
+            // split at cursor position
+            let shown = &self.input[self.cursor.get_base()..][..self.cursor.get_position()];
+            before.extend(&shown[position..]);
+            after.extend(&self.input[self.cursor.get_absolute()..]);
+        }
+        (before, after)
+    }
+
     /// Insert character at cursor position
     pub fn insert_char(&mut self, c: char) {
-        self.input.insert(self.cursor_position, c);
-        self.cursor_position += 1;
+        self.input.insert(self.cursor.get_absolute(), c);
+        self.cursor.move_right(self.input.len());
     }
 
     /// Delete character before cursor
     pub fn delete_char(&mut self) {
-        if self.cursor_position > 0 {
-            self.cursor_position -= 1;
-            self.input.remove(self.cursor_position);
+        if self.cursor.move_left() {
+            self.input.remove(self.cursor.get_absolute());
         }
     }
 
     /// Delete character at cursor
     pub fn delete_char_forward(&mut self) {
-        if self.cursor_position < self.input.len() {
-            self.input.remove(self.cursor_position);
+        if self.cursor.get_absolute() < self.input.len() {
+            self.input.remove(self.cursor.get_absolute());
         }
     }
 
     /// Move cursor left
     pub fn move_cursor_left(&mut self) {
-        if self.cursor_position > 0 {
-            self.cursor_position -= 1;
-        }
+        self.cursor.move_left();
     }
 
     /// Move cursor right
     pub fn move_cursor_right(&mut self) {
-        if self.cursor_position < self.input.len() {
-            self.cursor_position += 1;
-        }
+        self.cursor.move_right(self.input.len());
     }
 
     /// Move cursor to start
     pub fn move_cursor_start(&mut self) {
-        self.cursor_position = 0;
+        self.cursor.move_home();
     }
 
     /// Move cursor to end
     pub fn move_cursor_end(&mut self) {
-        self.cursor_position = self.input.len();
+        self.cursor.move_end(self.input.len());
     }
 
     /// Clear input buffer
     pub fn clear_input(&mut self) {
+        self.move_cursor_start();
         self.input.clear();
-        self.cursor_position = 0;
     }
 
     /// Take and clear input, returning the content
     pub fn take_input(&mut self) -> String {
-        let input = std::mem::take(&mut self.input);
-        self.cursor_position = 0;
-        input
+        self.move_cursor_start();
+        let mut str = String::new();
+        str.extend(std::mem::take(&mut self.input));
+        str
+    }
+
+    /// conver input into String
+    pub fn clone_input(&self) -> String {
+        let mut str = String::new();
+        str.extend(self.input.iter());
+        str
     }
 
     /// Set status message
@@ -623,10 +773,10 @@ mod tests {
         state.insert_char('h');
         state.insert_char('i');
         
-        assert_eq!(state.input, "hi");
-        assert_eq!(state.cursor_position, 2);
+        assert_eq!(state.clone_input(), "hi");
+        assert_eq!(state.get_cursor(10), 2);
         
         state.delete_char();
-        assert_eq!(state.input, "h");
+        assert_eq!(state.clone_input(), "h");
     }
 }

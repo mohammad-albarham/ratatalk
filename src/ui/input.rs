@@ -41,22 +41,23 @@ pub fn render_input(frame: &mut Frame, state: &AppState, area: Rect) {
     // Build input line with cursor
     let input_text = if is_editing {
         // Show cursor
-        let (before, after) = state.input.split_at(
-            state.cursor_position.min(state.input.len())
-        );
-        
+        let (before, after) = state.split_at_cursor(inner_area.width as usize);
+
         Line::from(vec![
             Span::raw(before),
             Span::styled("█", styles::highlight()), // Block cursor
             Span::raw(after),
         ])
-    } else if state.input.is_empty() {
+    } else {
+        let input = state.clone_input();
+        if input.is_empty() {
         Line::from(Span::styled(
             "Press 'i' or Enter to start typing...",
             styles::dim(),
         ))
     } else {
-        Line::from(state.input.clone())
+            Line::from(input)
+        }
     };
 
     let paragraph = Paragraph::new(input_text).block(block);
@@ -64,9 +65,13 @@ pub fn render_input(frame: &mut Frame, state: &AppState, area: Rect) {
     frame.render_widget(paragraph, area);
 
     // Set cursor position for terminal cursor if editing
-    if is_editing {
+    if is_editing && inner_area.height > 0 {
         // Calculate cursor position within the visible area
-        let cursor_x = inner_area.x + state.cursor_position.min(inner_area.width as usize) as u16;
+        let mut inner_width = inner_area.width as usize;
+        if inner_width > 1 {
+            inner_width -= 1;
+        }
+        let cursor_x = inner_area.x + state.get_cursor(inner_width) as u16;
         let cursor_y = inner_area.y;
         frame.set_cursor_position((cursor_x, cursor_y));
     }

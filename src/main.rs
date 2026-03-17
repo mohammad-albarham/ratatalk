@@ -186,7 +186,7 @@ async fn run_app(terminal: &mut Term, config: Config) -> Result<()> {
                     // Special handling for submit in editing mode
                     if state.input_mode == InputMode::Editing 
                         && key.code == KeyCode::Enter 
-                        && !state.input.trim().is_empty()
+                        && !state.clone_input().trim().is_empty()
                         && !state.streaming
                     {
                         // Submit message - stay in editing mode for continuous chat
