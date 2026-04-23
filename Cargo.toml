@@ -45,6 +45,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 
 # Utilities
 unicode-width = "0.2"
+pulldown-cmark = "0.13.3"
 
 [profile.release]
 lto = true

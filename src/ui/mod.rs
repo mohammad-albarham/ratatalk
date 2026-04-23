@@ -5,6 +5,7 @@
 mod chat;
 mod input;
 mod layout;
+mod markdown;
 mod popup;
 mod sidebar;
 
